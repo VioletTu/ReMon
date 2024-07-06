@@ -1,0 +1,71 @@
+anhui:
+  mode: 'html'
+  data_path: '../data/0926/dataset'
+  batch_size_train: 8 # the batch size for training, MeOA:3 ConOA:8
+  batch_size_test: 300 # the batch size for testing
+
+  bert_path: './Erlangshen-SimCSE-110M-Chinese'
+  hidden_size: 768
+  max_token_len: 512 # maximum token length of the model
+
+  ### search hyperparameters
+  # the following are the best settings
+  num_layerss: [1] # number of layers for the fc layer
+  embedding_sizes: [128] # size of fc layers
+  lrs: [1.0e-5] # learning rate
+  l2_regs: [1.0e-7] # the l2 regularization weight
+  ## MeOA
+  neg_num: 1 # number of negatives used
+  margins: [0.3]
+  ## ConOA
+  num_asset_samples: [2] # number of asset samples for generating org's embedding
+  num_heads: [1] # number of heads for the self-attention layer
+  aug_type: 'Dropout' # type of the data augmentation
+  aug_ratios: [0.1]
+  c_temps: [0.04] # the temperature in the contrastive loss: tau
+  momentums: [0.99]
+
+  epochs: 30 # number of epochs to train
+  opt_interval: 1 # by how many steps to optimize the model, MeOA:5 or 10 ConOA:1
+  test_interval: 1 # by how many epochs to run the validation and testing
+  topk: [1, 5, 10, 20] # the topks metrics for evaluation
+
+  ### clustering
+  model_path: './checkpoints/anhui/'
+  org_list: []
+
+jiangsu:
+  mode: 'html'
+  data_path: '../data/0102/dataset'
+  batch_size_train: 8 # the batch size for training, MeOA:3 ConOA:8
+  batch_size_test: 300 # the batch size for testing
+
+  bert_path: './Erlangshen-SimCSE-110M-Chinese'
+  hidden_size: 768
+  max_token_len: 512 # maximum token length of the model
+
+  ### search hyperparameters
+  # the following are the best settings
+  num_layerss: [1] # number of layers for the fc layer
+  embedding_sizes: [128] # size of fc layers
+  lrs: [1.0e-5] # learning rate
+  l2_regs: [1.0e-7] # the l2 regularization weight
+  ## MeOA
+  neg_num: 1 # number of negatives used
+  margins: [0.3]
+  ## ConOA
+  num_asset_samples: [5] # number of asset samples
+  num_heads: [1] # number of heads for the self-attention layer
+  aug_type: 'Dropout' # type of the data augmentation
+  aug_ratios: [0.4]
+  c_temps: [0.04] # the temperature in the contrastive loss: tau
+  momentums: [0.99]
+
+  epochs: 30 # number of epochs to train
+  opt_interval: 1 # by how many steps to optimize the model, MeOA:5 or 10 ConOA:1
+  test_interval: 1 # by how many epochs to run the validation and testing
+  topk: [1, 5, 10, 20] # the topks metrics for evaluation
+
+  ### clustering
+  model_path: './checkpoints/jiangsu/'
+  org_list: []

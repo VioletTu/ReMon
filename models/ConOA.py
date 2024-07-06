@@ -96,8 +96,9 @@ class ConOA(nn.Module):
 
     def cal_loss(self, anchors_embedding, anchors_embedding_m, assets_embedding_m, batch_org_idx):
         ### cross-asset
+        assets_embedding_d = F.normalize(torch.cat((assets_embedding_m, self.data_augmentation(assets_embedding_m,0.05)),dim=0), dim=-1)
         # pred1---[batch_size, 2*batch_size]
-        pred1 = torch.mm(anchors_embedding, F.normalize(torch.cat((assets_embedding_m, self.data_augmentation(assets_embedding_m,self.aug_ratio)),dim=0), dim=-1).permute(1,0))
+        pred1 = torch.mm(anchors_embedding, assets_embedding_d.permute(1,0))
         # print("---pred1")
         # print(pred1.size())
         # print(pred1)
@@ -127,7 +128,7 @@ class ConOA(nn.Module):
             indices = (queue_org_idx == batch_org_idx[i]).nonzero().reshape(-1)
             batch_anchor_org_emb[i,:] = torch.mean(torch.cat((anchors_embedding_m, assets_embedding_m, queue_assets_embedding[indices,:].reshape(-1,self.embedding_size)), dim=0), dim=0)
             # batch_pos_org_emb[i,:] = torch.mean(torch.cat((assets_embedding_m, queue_assets_embedding[indices,:].reshape(-1,self.embedding_size)), dim=0), dim=0)
-            batch_pos_org_emb[i,:] = self.data_augmentation(batch_anchor_org_emb[i,:], 0.1)
+            batch_pos_org_emb[i,:] = self.data_augmentation(batch_anchor_org_emb[i,:], self.aug_ratio)
         
         # batch_anchor_org_emb---[batch_size, emb_size]
         batch_anchor_org_emb = F.normalize(batch_anchor_org_emb, dim=-1)
@@ -136,15 +137,16 @@ class ConOA(nn.Module):
         
         ### asset-org
         # pred1---[batch_size, batch_size*2]
-        pred1 = torch.mm(anchors_embedding, torch.cat([batch_anchor_org_emb, batch_pos_org_emb], dim=0).permute(1,0))
+        embeddings = torch.cat((anchors_embedding, assets_embedding_d),dim=0)
+        pred1 = torch.mm(embeddings, torch.cat([batch_anchor_org_emb, batch_pos_org_emb], dim=0).permute(1,0))
         
         unique_org_idx = queue_org_idx.unique(sorted=True)
         queue_assets_sample_emb = self.mean_assets_emb(queue_assets_embedding, queue_org_idx, unique_org_idx)
         queue_org_emb = F.normalize(queue_assets_sample_emb, dim=-1)
         # pred2---[batch_size, org_size_in_queue]
-        pred2 = torch.mm(anchors_embedding, queue_org_emb.permute(1,0))
+        pred2 = torch.mm(embeddings, queue_org_emb.permute(1,0))
         idx_all = torch.cat([batch_org_idx.permute(1,0), batch_org_idx.permute(1,0), unique_org_idx.unsqueeze(0)], dim=1)
-        pos_idx = torch.eq(batch_org_idx, idx_all).float()
+        pos_idx = torch.eq(torch.cat((batch_org_idx,batch_org_idx,batch_org_idx), dim=0), idx_all).float()
         sim_targets = pos_idx / pos_idx.sum(1, keepdim=True)
         
         a_o_c_loss = self.cal_c_loss(torch.cat((pred1, pred2), dim=1), sim_targets)

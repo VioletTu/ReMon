@@ -29,7 +29,7 @@ def get_cmd():
     parser = argparse.ArgumentParser()
     # experimental settings
     parser.add_argument("-g", "--gpu", default="1,0", type=str, help="which gpu to use")
-    parser.add_argument("-d", "--dataset", default="WOI-a", type=str, help="which dataset to use, options: WOI-a, WOI-b")
+    parser.add_argument("-d", "--dataset", default="WOI_a", type=str, help="which dataset to use, options: WOI_a, WOI_b")
     parser.add_argument("-m", "--model", default="ConOA", type=str, help="which model to use, options: ConOA, MeOA")
     parser.add_argument("-i", "--info", default="", type=str, help="any auxilary info that will be appended to the log file name")
     parser.add_argument('--device', default='cuda')
@@ -52,8 +52,8 @@ def main():
     device = torch.device(args.device)
 
     dataset_name = args.dataset
-    if "-" in dataset_name:
-        conf = conf[dataset_name.split("-")[-1]]
+    if "_" in dataset_name:
+        conf = conf[dataset_name.split("_")[-1]]
     else:
         conf = conf[dataset_name]
     conf["dataset"] = dataset_name

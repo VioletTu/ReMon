@@ -14,6 +14,6 @@ scikit-learn 1.3.2
 
 ## Run the code
 ```
-python -m torch.distributed.run --nproc_per_node=2 train.py -m ConOA -d xx
-python clustering.py -d xx
+python -m torch.distributed.run --nproc_per_node=2 train.py -m ConOA -d WOI-a
+python clustering.py -d WOI-a
 ```

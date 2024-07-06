@@ -31,7 +31,7 @@ WOI-a:
   topk: [1, 5, 10, 20] # the topks metrics for evaluation
 
   ### clustering
-  model_path: './checkpoints/anhui/'
+  model_path: './checkpoints/a/'
   org_list: []
 
 WOI-b:
@@ -67,5 +67,5 @@ WOI-b:
   topk: [1, 5, 10, 20] # the topks metrics for evaluation
 
   ### clustering
-  model_path: './checkpoints/jiangsu/'
+  model_path: './checkpoints/b/'
   org_list: []

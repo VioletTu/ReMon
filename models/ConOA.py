@@ -22,10 +22,6 @@ class EmbModel(nn.Module):
         for param in self.bert.parameters():
             param.requires_grad = True
         self.fc = nn.Linear(self.hidden_size, self.embedding_size)
-        # self.fc = nn.Sequential(
-        #     nn.Linear(self.hidden_size, self.embedding_size * 2),
-        #     nn.Linear(self.embedding_size * 2, self.embedding_size)
-        # )
 
 
     def forward(self, batch):
@@ -63,8 +59,6 @@ class ConOA(nn.Module):
         self.register_buffer("queue", torch.randn(self.embedding_size, self.queue_size))
         # org_id
         self.register_buffer("idx_queue", torch.full((1, self.queue_size),-100))
-        # org_cluster_id
-        self.register_buffer("idx_clusters", torch.full((1, self.queue_size),-100))
 
 
     def data_augmentation(self, features, ratio):
@@ -228,14 +222,6 @@ class ConOA(nn.Module):
         self.queue = train_sample_emb.permute(1,0)
         self.idx_queue = train_org_idx.view(1,-1)
         self.idx_clusters = train_clusters.view(1,-1)
-    
-
-    @torch.no_grad()
-    def update_clusters(self, train_clusters):
-        """
-        Update the clusters for org embedding
-        """
-        self.idx_clusters = train_clusters.view(1,-1)
 
 
     @torch.no_grad()
@@ -250,7 +236,6 @@ class ConOA(nn.Module):
 
         # replace the value
         self.queue[:, asset_pos_idxs] = asset_embs.permute(1,0)
-
 
 
 # dist_utils

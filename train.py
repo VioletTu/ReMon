@@ -29,7 +29,7 @@ def get_cmd():
     parser = argparse.ArgumentParser()
     # experimental settings
     parser.add_argument("-g", "--gpu", default="1,0", type=str, help="which gpu to use")
-    parser.add_argument("-d", "--dataset", default="anhui", type=str, help="which dataset to use, options: anhui, jiangsu")
+    parser.add_argument("-d", "--dataset", default="WOI-a", type=str, help="which dataset to use, options: WOI-a, WOI-b")
     parser.add_argument("-m", "--model", default="ConOA", type=str, help="which model to use, options: ConOA, MeOA")
     parser.add_argument("-i", "--info", default="", type=str, help="any auxilary info that will be appended to the log file name")
     parser.add_argument('--device', default='cuda')
@@ -138,8 +138,6 @@ def main():
             metrics = {}
             sim_metric = {}
             train_emb = cal_asset_emb(model_without_ddp, dataset.train_raw_data[1], tokenizer, conf)
-            # train_clusters = clustering(train_emb, train_org_idx, conf)
-            # model_without_ddp.update_clusters(train_clusters)
             metrics["val"], sim_metric["val"] = test(model_without_ddp, train_emb, train_org_idx, dataset.val_loader, tokenizer, conf)
             metrics["test"], sim_metric["test"] = test(model_without_ddp, train_emb, train_org_idx, dataset.test_loader, tokenizer, conf)
             best_metrics, best_perform, best_epoch = log_metrics(conf, model_without_ddp, metrics, sim_metric, run, log_path, checkpoint_model_path, checkpoint_conf_path, 0, 0, best_metrics, best_perform, best_epoch)
@@ -227,17 +225,11 @@ def main():
 
                 if conf["distributed"]:
                     dist.barrier()
-                    # if conf["model"] == "ConOA":
-                    #     dist.broadcast(train_clusters, src=0)
-                # if conf["model"] == "ConOA":
-                #     model_without_ddp.update_clusters(train_clusters)
-                # torch.cuda.empty_cache()
 
 
 @torch.no_grad()
 def cal_asset_emb(model, train_assets_info, tokenizer, conf):
     device = conf["device"]
-    # train_emb = torch.rand(9775, 128).to(device)
     train_emb = torch.tensor([]).to(device)
     train_text_list = [train_assets_info[key]['text'] for key in train_assets_info]
     model.eval()
@@ -252,33 +244,6 @@ def cal_asset_emb(model, train_assets_info, tokenizer, conf):
                 train_emb = torch.cat((train_emb, torch.mean(embedding, dim=0)), 0)
         # train_emb---[train_num, emb_size]
     return train_emb
-
-
-# @torch.no_grad()
-# def clustering(train_emb, train_org_idx, conf):
-#     device = conf["device"]
-#     clusters = torch.zeros(conf["queue_size"], dtype=torch.int).to(device)
-#     grouped_indices = torch.argsort(train_org_idx)
-#     grouped_emb = torch.split(train_emb[grouped_indices,:], torch.bincount(train_org_idx).tolist())
-#     grouped_indices = torch.split(grouped_indices, torch.bincount(train_org_idx).tolist())
-#     for i in range(len(grouped_emb)):
-#         if grouped_emb[i].shape[0] <= conf["num_asset_sample"]:
-#             continue
-#         clusters_num = grouped_emb[i].shape[0] // conf["num_asset_sample"] + (grouped_emb[i].shape[0] % conf["num_asset_sample"] > 0)
-#         tmp_emb = grouped_emb[i]
-#         tmp_indices = grouped_indices[i]
-#         for c in range(clusters_num):
-#             if tmp_emb.shape[0] <= conf["num_asset_sample"]:
-#                 clusters[tmp_indices] = c
-#             else:
-#                 sample_index = np.random.randint(tmp_emb.shape[0])
-#                 similarities = F.cosine_similarity(tmp_emb[sample_index,:].unsqueeze(0), tmp_emb)
-#                 _, clusters_indices = torch.topk(similarities, conf["num_asset_sample"])
-#                 clusters[tmp_indices[clusters_indices]] = c
-#                 indices_to_keep = torch.tensor([i for i in range(tmp_emb.shape[0]) if i not in clusters_indices]).to(device)
-#                 tmp_emb = torch.index_select(tmp_emb, 0, indices_to_keep)
-#                 tmp_indices = torch.index_select(tmp_indices, 0, indices_to_keep)
-#     return clusters
 
 
 @torch.no_grad()

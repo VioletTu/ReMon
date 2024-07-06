@@ -17,7 +17,7 @@ def get_cmd():
     parser = argparse.ArgumentParser()
     # experimental settings
     parser.add_argument("-g", "--gpu", default="0,1", type=str, help="which gpu to use")
-    parser.add_argument("-d", "--dataset", default="WOI-a", type=str, help="which dataset to use, options: WOI-a, WOI-b")
+    parser.add_argument("-d", "--dataset", default="WOI_a", type=str, help="which dataset to use, options: WOI_a, WOI_b")
     parser.add_argument("-e", "--embedding_model", default="ConOA", type=str, help="which embedding model to use, options: ConOA, MeOA")
     # parser.add_argument("-n", "--embedding_model_name", default="", type=str)
     # parser.add_argument("-c", "--clustering_model", default="hac", type=str, help="which clustering model to use, options: kmeans,dbscan,hac")
@@ -32,7 +32,7 @@ def main():
     args = get_cmd()
     dataset_name = args.dataset
     if "_" in dataset_name:
-        conf = conf[dataset_name.split("_")[0]]
+        conf = conf[dataset_name.split("_")[-1]]
     else:
         conf = conf[dataset_name]
     conf["dataset"] = dataset_name

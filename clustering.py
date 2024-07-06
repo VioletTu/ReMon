@@ -17,7 +17,7 @@ def get_cmd():
     parser = argparse.ArgumentParser()
     # experimental settings
     parser.add_argument("-g", "--gpu", default="0,1", type=str, help="which gpu to use")
-    parser.add_argument("-d", "--dataset", default="anhui", type=str, help="which dataset to use, options: anhui, jiangsu")
+    parser.add_argument("-d", "--dataset", default="WOI-a", type=str, help="which dataset to use, options: WOI-a, WOI-b")
     parser.add_argument("-e", "--embedding_model", default="ConOA", type=str, help="which embedding model to use, options: ConOA, MeOA")
     # parser.add_argument("-n", "--embedding_model_name", default="", type=str)
     # parser.add_argument("-c", "--clustering_model", default="hac", type=str, help="which clustering model to use, options: kmeans,dbscan,hac")
@@ -42,18 +42,7 @@ def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     conf["model"] = device
     
-    # embedding_model_names = ['allrm_margin_CBWE_rewrite_8_768_128_1e-05_1e-07_1_0.3','allrm_margin_CBWE_test_html_8_768_128_1e-05_1e-07_1_0.3',
-    #                          'allrm_margin_roberta_rewrite_8_768_128_1e-05_1e-07_1_0.3','allrm_margin_roberta_html_8_768_128_1e-05_1e-07_1_0.3',
-    #                          'allrm_margin_CMB_rewrite_8_768_128_1e-05_1e-07_1_0.3','allrm_margin_CMB_html_8_768_128_1e-05_1e-07_1_0.3',
-    #                          'allrm_margin_RBC_rewrite_8_768_128_1e-05_1e-07_1_0.3','allrm_margin_RBC_html_8_768_128_1e-05_1e-07_1_0.3',
-    #                          'allrm_margin_CPB_rewrite_8_768_128_1e-05_1e-07_1_0.3','allrm_margin_CPB_html_8_768_128_1e-05_1e-07_1_0.3',
-    #                          'allrm_margin_CLB_rewrite_8_768_128_1e-05_1e-07_1_0.3','allrm_margin_CLB_html_8_768_128_1e-05_1e-07_1_0.3',
-    #                          'allrm_margin_ES_rewrite_8_768_128_1e-05_1e-07_1_0.3','allrm_margin_ES_html_8_768_128_1e-05_1e-07_1_0.3',
-    #                          'allrm_margin_SCR_rewrite_8_768_128_1e-05_1e-07_1_0.3','allrm_margin_SCR_html_8_768_128_1e-05_1e-07_1_0.3']
-    # embedding_model_names = ['allrm_ES_ac_html_8_768_128_1e-05_1e-07_0.1_9775_0.04_0.99','allrm_ES_ac_html_html_8_768_128_1e-05_1e-07_0.1_9775_0.04_0.99','allrm_ES_6ac_2aocd_2oc_ave_dropout_rewrite_8_768_128_1e-05_1e-07_2_1_0.1_9775_0.04_0.99']
-    # embedding_model_names = ['allrm_ES_ac_html_8_768_128_1e-05_1e-07_0.4_19188_0.04_0.99','allrm_ES_6ac_2aocd_2oc_dropout_rewrite_8_768_128_1e-05_1e-07_5_1_0.4_19188_0.04_0.99']
-    embedding_model_names = ['allrm_margin_RBC_test_html_8_768_128_1e-05_1e-07_1_0.3']
-
+    embedding_model_names = ['allrm_ES_6ac_2aocd_2oc_ave_dropout_rewrite_8_768_128_1e-05_1e-07_2_1_0.1_9775_0.04_0.99']
     
     for embedding_model_name in embedding_model_names:
         #### Dataset #### 
@@ -82,13 +71,9 @@ def main():
             print("=> no checkpoint found at '{}'".format(embedding_model_name))
         
         #### Get embedding ####
-        train_assets_info = dataset.train_raw_data[1]
-        valid_assets_info = dataset.valid_raw_data[1]
         test_assets_info = dataset.test_raw_data[1]
         test_emb = torch.tensor([]).to(device)
-        test_text_list = [train_assets_info[key]['text'] for key in train_assets_info] + [valid_assets_info[key]['text'] for key in valid_assets_info] + [test_assets_info[key]['text'] for key in test_assets_info]
-        # test_text_list = [valid_assets_info[key]['text'] for key in valid_assets_info] + [test_assets_info[key]['text'] for key in test_assets_info]
-        # test_text_list = [test_assets_info[key]['text'] for key in test_assets_info]
+        test_text_list = [test_assets_info[key]['text'] for key in test_assets_info]
         emb_model.eval()
         with torch.no_grad():
             for i in tqdm(range(len(test_text_list)), desc='Getting test assets\' embedding'):
@@ -105,9 +90,7 @@ def main():
         test_emb = test_emb.cpu().numpy()
         
         #### Get label ####
-        true_label = torch.cat((get_assets_org_id(conf["data_path"], "train"),get_assets_org_id(conf["data_path"], "valid"),get_assets_org_id(conf["data_path"], "test")), 0).numpy()
-        # true_label = torch.cat((get_assets_org_id(conf["data_path"], "valid"),get_assets_org_id(conf["data_path"], "test")), 0).numpy()
-        # true_label = get_assets_org_id(conf["data_path"], "test").numpy()
+        true_label = get_assets_org_id(conf["data_path"], "test").numpy()
         
         f = open('./output/clustering/res-%s-%s.txt' % (dataset_name, embedding_model_name), 'a', encoding = 'utf-8')
         #### Clustering ####
@@ -132,7 +115,7 @@ def main():
                 pred_label[mask] = stats.mode(true_label[mask])[0]
             accuracy = np.sum(pred_label == true_label) / len(true_label)
             print(f"{method} accuracy: {accuracy}")
-            f.write("----%s model on %s data----\n" %(dataset_name,"jiangsu"))
+            f.write("----%s----\n" %(dataset_name))
             f.write("%s accuracy: %f\n" %(method, accuracy))
             
             true_label_dict = {}

@@ -1,6 +1,6 @@
-anhui:
+WOI-a:
   mode: 'html'
-  data_path: '../data/0926/dataset'
+  data_path: '../data/a/dataset'
   batch_size_train: 8 # the batch size for training, MeOA:3 ConOA:8
   batch_size_test: 300 # the batch size for testing
 
@@ -34,9 +34,9 @@ anhui:
   model_path: './checkpoints/anhui/'
   org_list: []
 
-jiangsu:
+WOI-b:
   mode: 'html'
-  data_path: '../data/0102/dataset'
+  data_path: '../data/b/dataset'
   batch_size_train: 8 # the batch size for training, MeOA:3 ConOA:8
   batch_size_test: 300 # the batch size for testing
 

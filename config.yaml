@@ -1,4 +1,4 @@
-WOI-a:
+a:
   mode: 'html'
   data_path: '../data/a/dataset'
   batch_size_train: 8 # the batch size for training, MeOA:3 ConOA:8
@@ -34,7 +34,7 @@ WOI-a:
   model_path: './checkpoints/a/'
   org_list: []
 
-WOI-b:
+b:
   mode: 'html'
   data_path: '../data/b/dataset'
   batch_size_train: 8 # the batch size for training, MeOA:3 ConOA:8

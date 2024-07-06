@@ -52,8 +52,8 @@ def main():
     device = torch.device(args.device)
 
     dataset_name = args.dataset
-    if "_" in dataset_name:
-        conf = conf[dataset_name.split("_")[0]]
+    if "-" in dataset_name:
+        conf = conf[dataset_name.split("-")[-1]]
     else:
         conf = conf[dataset_name]
     conf["dataset"] = dataset_name
